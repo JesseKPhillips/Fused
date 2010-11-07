@@ -10,8 +10,8 @@ import fuse;
 import fuse_common;
 import fuse_opt;
 
-char *hello_str; 
-char *hello_path;
+auto hello_str = "Hello World!\n";
+auto hello_path = "/hello";
 
 static fuse_operations hello_oper;
 
@@ -23,8 +23,6 @@ int main(string[] args)
     hello_oper.read	 = &hello_read;
 
 	char*[] argv;
-	hello_str = cast(char*) toStringz("Hello World!\n");
-	hello_path = cast(char*) toStringz("/hello");
 	foreach(arg; args) {
 		argv ~= cast(char*) toStringz(arg);
 	}
@@ -43,10 +41,10 @@ static int hello_getattr(const char *path, stat_t *stbuf)
         stbuf.st_mode = S_IFDIR | 0755;
         stbuf.st_nlink = 2;
     }
-    else if(strcmp(path, hello_path) == 0) {
+    else if(strcmp(path, toStringz(hello_path)) == 0) {
         stbuf.st_mode = S_IFREG | 0444;
         stbuf.st_nlink = 1;
-        stbuf.st_size = strlen(hello_str);
+        stbuf.st_size = strlen(toStringz(hello_str));
     }
     else
         res = -ENOENT;
@@ -63,16 +61,16 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     if(strcmp(path, "/") != 0)
         return -ENOENT;
 
-    filler(buf, ".".dup.ptr, null, 0);
-    filler(buf, "..".dup.ptr, null, 0);
-    filler(buf, hello_path + 1, null, 0);
+    filler(buf, ".", null, 0);
+    filler(buf, "..", null, 0);
+    filler(buf, toStringz(hello_path) + 1, null, 0);
 
     return 0;
 }
 
 static int hello_open(const char *path, fuse_file_info *fi)
 {
-    if(strcmp(path, hello_path) != 0)
+    if(strcmp(path, toStringz(hello_path)) != 0)
         return -ENOENT;
 
     if((fi.flags & 3) != O_RDONLY)
@@ -86,14 +84,14 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 {
     size_t len;
     cast(void) fi;
-    if(strcmp(path, hello_path) != 0)
+    if(strcmp(path, toStringz(hello_path)) != 0)
         return -ENOENT;
 
-    len = strlen(hello_str);
+    len = hello_str.length;
     if (offset < len) {
         if (offset + size > len)
             size = len - cast(size_t) offset;
-        memcpy(buf, hello_str + offset, size);
+        memcpy(buf, toStringz(hello_str) + offset, size);
     } else
         size = 0;
 
