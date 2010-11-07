@@ -33,7 +33,7 @@ public import fuse_helper;
 //C     #ifndef FUSE_USE_VERSION
 //C     #define FUSE_USE_VERSION 21
 //C     #endif
-const FUSE_USE_VERSION = 21;
+const FUSE_USE_VERSION = 26;
 
 // C #include "fuse_common.h"
 // C 

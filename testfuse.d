@@ -13,16 +13,22 @@ import fuse_opt;
 char *hello_str; 
 char *hello_path;
 
+static fuse_operations hello_oper;
 
 int main(string[] args)
 {
-	//char*[] argv;
-	//hello_str = cast(char*) toStringz("Hello World!\n");
-	//hello_path = cast(char*) toStringz("/hello");
-	//foreach(arg; args) {
-//		argv ~= cast(char*) toStringz(arg);
-//	}
- //   return fuse_main(argv.length, argv.ptr, &hello_oper);
+    hello_oper.getattr = &hello_getattr;
+    //hello_oper.readdir = &hello_readdir;
+    hello_oper.open	 = &hello_open;
+    hello_oper.read	 = &hello_read;
+
+	char*[] argv;
+	hello_str = cast(char*) toStringz("Hello World!\n");
+	hello_path = cast(char*) toStringz("/hello");
+	foreach(arg; args) {
+		argv ~= cast(char*) toStringz(arg);
+	}
+    return fuse_main(argv.length, argv.ptr, &hello_oper);
  return 0;
 }
 
@@ -86,7 +92,7 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
     len = strlen(hello_str);
     if (offset < len) {
         if (offset + size > len)
-            size = len - offset;
+            size = len - cast(size_t) offset;
         memcpy(buf, hello_str + offset, size);
     } else
         size = 0;
@@ -94,9 +100,3 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
     return size;
 }
 
-static fuse_operations hello_oper = {
-    getattr:&hello_getattr,
-    readdir:&hello_readdir,
-    open	:&hello_open,
-    read	:&hello_read,
-};

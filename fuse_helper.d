@@ -53,10 +53,13 @@ struct node {
 	lock *locks;
 	//FIXME: This was originally 
 	//  uint is_hidden : 1;
-	uint is_hidden;
-	//FIXME: This was originally 
 	//  uint cache_valid : 1;
-	uint cache_valid;
+   uint __bitfield1;
+	uint is_hidden() { return (__bitfield1 >> 0) & 0x1; }
+	uint is_hidden(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffe) | (value << 0); return value; }
+	uint cache_valid() { return (__bitfield1 >> 1) & 0x1; }
+	uint cache_valid(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffd) | (value << 1); return value; }
+
 	int treelock;
 	int ticket;
 };
