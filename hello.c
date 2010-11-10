@@ -31,6 +31,8 @@ static int hello_getattr(const char *path, struct stat *stbuf)
     }
     else
         res = -ENOENT;
+	 printf("st_mode %d", stbuf->st_mode);
+	 printf("st_mode %d", S_IFDIR | 0775);
 
     return res;
 }
@@ -75,14 +77,15 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
     } else
         size = 0;
 
+
     return size;
 }
 
 static struct fuse_operations hello_oper = {
     .getattr	= hello_getattr,
     //.readdir	= hello_readdir,
-    .open	= hello_open,
-    .read	= hello_read,
+    //.open	= hello_open,
+    //.read	= hello_read,
 };
 
 int main(int argc, char *argv[])

@@ -1,9 +1,11 @@
 module testfuse;
 
 import std.string;
+import std.conv;
 import std.c.stdlib;
 import std.c.string;
 import core.stdc.errno;
+import std.stdio;
 
 
 import fuse;
@@ -19,12 +21,12 @@ int main(string[] args)
 {
     hello_oper.getattr = &hello_getattr;
     //hello_oper.readdir = &hello_readdir;
-    hello_oper.open	 = &hello_open;
-    hello_oper.read	 = &hello_read;
+    //hello_oper.open	 = &hello_open;
+    //hello_oper.read	 = &hello_read;
 
 	char*[] argv;
 	foreach(arg; args) {
-		argv ~= cast(char*) toStringz(arg);
+		argv ~= (arg ~ "\0").dup.ptr;
 	}
     return fuse_main(argv.length, argv.ptr, &hello_oper);
  return 0;
@@ -35,6 +37,7 @@ extern (C):
 static int hello_getattr(const char *path, stat_t *stbuf)
 {
     int res = 0;
+	 writeln("Calling read Attribute: ", to!string(path));
 
     memset(stbuf, 0, stat_t.sizeof);
     if(strcmp(path, "/") == 0) {
@@ -48,6 +51,8 @@ static int hello_getattr(const char *path, stat_t *stbuf)
     }
     else
         res = -ENOENT;
+	 writeln("st_mode ", stbuf.st_mode);
+	 writeln("st_mode ", S_IFDIR | 0775);
 
     return res;
 }
