@@ -16,6 +16,7 @@ auto hello_str = "Hello World!\n";
 auto hello_path = "/hello";
 
 static fuse_operations hello_oper;
+extern(C) int c_hello_getattr(const char *path, stat_t *stbuf);
 
 int main(string[] args)
 {
@@ -34,28 +35,36 @@ int main(string[] args)
 
 extern (C):
 
-static int hello_getattr(const char *path, stat_t *stbuf)
-{
-    int res = 0;
-	 writeln("Calling read Attribute: ", to!string(path));
-
-    memset(stbuf, 0, stat_t.sizeof);
-    if(strcmp(path, "/") == 0) {
-        stbuf.st_mode = S_IFDIR | 0755;
-        stbuf.st_nlink = 2;
-    }
-    else if(strcmp(path, toStringz(hello_path)) == 0) {
-        stbuf.st_mode = S_IFREG | 0444;
-        stbuf.st_nlink = 1;
-        stbuf.st_size = strlen(toStringz(hello_str));
-    }
-    else
-        res = -ENOENT;
-	 writeln("st_mode ", stbuf.st_mode);
-	 writeln("st_mode ", S_IFDIR | 0775);
-
-    return res;
+int hello_getattr(const char *path, stat_t *stbuf) {
+	writeln("Calling this with ", to!string(path));
+	return c_hello_getattr(path, stbuf);
 }
+//int hello_getattr(const char *path, stat_t *stbuf)
+//{
+//    int res = 0;
+//	 writeln("Calling read Attribute: ", to!string(path));
+//
+//    memset(stbuf, 0, stat_t.sizeof);
+//    if(strcmp(path, toStringz("/")) == 0) {
+//		 writeln("Is DIR");
+//        stbuf.st_mode = (S_IFDIR | 0755);
+//	 	writeln("after set ", stbuf.st_mode);
+//        stbuf.st_nlink = 2;
+//    }
+//    else if(strcmp(path, toStringz(hello_path)) == 0) {
+//		 writeln("Is File");
+//        stbuf.st_mode = S_IFREG | 0444;
+//        stbuf.st_nlink = 1;
+//        stbuf.st_size = hello_str.length;
+//    }
+//    else
+//        res = -ENOENT;
+//	 writeln("st_mode ", stbuf.st_mode);
+//	 writeln("st_mode ", (S_IFDIR | 0775));
+//	 writeln("enoent ", res);
+//
+//    return res;
+//}
 
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, fuse_file_info *fi)

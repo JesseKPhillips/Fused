@@ -82,7 +82,7 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 static struct fuse_operations hello_oper = {
-    .getattr	= hello_getattr,
+    //.getattr	= hello_getattr,
     //.readdir	= hello_readdir,
     //.open	= hello_open,
     //.read	= hello_read,
