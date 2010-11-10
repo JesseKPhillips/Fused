@@ -17,11 +17,9 @@ auto hello_path = "/hello";
 
 static fuse_operations hello_oper;
 extern(C) int c_hello_getattr(const char *path, stat_t *stbuf);
-extern(C) int c_hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                         off_t offset, fuse_file_info *fi);
+extern(C) int c_hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, fuse_file_info *fi);
 extern(C) int c_hello_open(const char *path, fuse_file_info *fi);
-extern(C) int c_hello_read(const char *path, char *buf, size_t size, off_t offset,
-                      fuse_file_info *fi);
+extern(C) int c_hello_read(const char *path, char *buf, size_t size, off_t offset, fuse_file_info *fi);
 
 int main(string[] args)
 {
