@@ -17,13 +17,18 @@ auto hello_path = "/hello";
 
 static fuse_operations hello_oper;
 extern(C) int c_hello_getattr(const char *path, stat_t *stbuf);
+extern(C) int c_hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+                         off_t offset, fuse_file_info *fi);
+extern(C) int c_hello_open(const char *path, fuse_file_info *fi);
+extern(C) int c_hello_read(const char *path, char *buf, size_t size, off_t offset,
+                      fuse_file_info *fi);
 
 int main(string[] args)
 {
     hello_oper.getattr = &hello_getattr;
-    //hello_oper.readdir = &hello_readdir;
-    //hello_oper.open	 = &hello_open;
-    //hello_oper.read	 = &hello_read;
+    hello_oper.readdir = &hello_readdir;
+    hello_oper.open	 = &hello_open;
+    hello_oper.read	 = &hello_read;
 
 	char*[] argv;
 	foreach(arg; args) {
@@ -36,7 +41,6 @@ int main(string[] args)
 extern (C):
 
 int hello_getattr(const char *path, stat_t *stbuf) {
-	writeln("Calling this with ", to!string(path));
 	return c_hello_getattr(path, stbuf);
 }
 //int hello_getattr(const char *path, stat_t *stbuf)
@@ -67,48 +71,59 @@ int hello_getattr(const char *path, stat_t *stbuf) {
 //}
 
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                         off_t offset, fuse_file_info *fi)
-{
-    cast(void) offset;
-    cast(void) fi;
-
-    if(strcmp(path, "/") != 0)
-        return -ENOENT;
-
-    filler(buf, ".", null, 0);
-    filler(buf, "..", null, 0);
-    filler(buf, toStringz(hello_path) + 1, null, 0);
-
-    return 0;
+                         off_t offset, fuse_file_info *fi) {
+	return c_hello_readdir(path, buf, filler, offset, fi);
 }
+//static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+//                         off_t offset, fuse_file_info *fi)
+//{
+//    cast(void) offset;
+//    cast(void) fi;
+//
+//    if(strcmp(path, "/") != 0)
+//        return -ENOENT;
+//
+//    filler(buf, ".", null, 0);
+//    filler(buf, "..", null, 0);
+//    filler(buf, toStringz(hello_path) + 1, null, 0);
+//
+//    return 0;
+//}
 
-static int hello_open(const char *path, fuse_file_info *fi)
-{
-    if(strcmp(path, toStringz(hello_path)) != 0)
-        return -ENOENT;
-
-    if((fi.flags & 3) != O_RDONLY)
-        return -EACCES;
-
-    return 0;
+static int hello_open(const char *path, fuse_file_info *fi) {
+	return c_hello_open(path, fi);
 }
+//static int hello_open(const char *path, fuse_file_info *fi)
+//{
+//    if(strcmp(path, toStringz(hello_path)) != 0)
+//        return -ENOENT;
+//
+//    if((fi.flags & 3) != O_RDONLY)
+//        return -EACCES;
+//
+//    return 0;
+//}
 
 static int hello_read(const char *path, char *buf, size_t size, off_t offset,
-                      fuse_file_info *fi)
-{
-    size_t len;
-    cast(void) fi;
-    if(strcmp(path, toStringz(hello_path)) != 0)
-        return -ENOENT;
-
-    len = hello_str.length;
-    if (offset < len) {
-        if (offset + size > len)
-            size = len - cast(size_t) offset;
-        memcpy(buf, toStringz(hello_str) + offset, size);
-    } else
-        size = 0;
-
-    return size;
+                      fuse_file_info *fi) {
+	return c_hello_read(path, buf, size, offset, fi);
 }
+//static int hello_read(const char *path, char *buf, size_t size, off_t offset,
+//                      fuse_file_info *fi)
+//{
+//    size_t len;
+//    cast(void) fi;
+//    if(strcmp(path, toStringz(hello_path)) != 0)
+//        return -ENOENT;
+//
+//    len = hello_str.length;
+//    if (offset < len) {
+//        if (offset + size > len)
+//            size = len - cast(size_t) offset;
+//        memcpy(buf, toStringz(hello_str) + offset, size);
+//    } else
+//        size = 0;
+//
+//    return size;
+//}
 
