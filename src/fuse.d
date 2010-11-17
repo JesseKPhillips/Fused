@@ -8,15 +8,11 @@ module fuse;
   See the file COPYING.LIB.
 */
 
-//C     #ifndef _FUSE_H_
-//C     #define _FUSE_H_
-//
 public import core.sys.posix.fcntl;
 public import core.sys.posix.sys.stat;
 public import core.sys.posix.sys.time;
 public import core.sys.posix.sys.types;
 public import core.sys.posix.utime;
-import core.sys.posix.statvfs;
 
 public import fuse_common;
 public import fuse_helper;
@@ -33,7 +29,7 @@ public import fuse_helper;
 //C     #ifndef FUSE_USE_VERSION
 //C     #define FUSE_USE_VERSION 21
 //C     #endif
-const FUSE_USE_VERSION = 26;
+const FUSE_USE_VERSION = 28;
 
 // C #include "fuse_common.h"
 // C 
