@@ -6,6 +6,12 @@ module fuse_helper;
 
 /// fuse.c
 struct fusemod_so;
+struct fuse_dirhandle;
+/+{
+	fuse_fill_dir_t filler;
+	void *buf;
+};
++/
 
 /**
  * This structure is used in some Fuse operations.

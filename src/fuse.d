@@ -16,46 +16,12 @@ public import core.sys.posix.utime;
 
 public import fuse_common;
 public import fuse_helper;
-/** @file
- *
- * This file defines the library interface of FUSE
- *
- * IMPORTANT: you should define FUSE_USE_VERSION before including this
- * header.  To use the newest API define it to 26 (recommended for any
- * new application), to use the old API define it to 21 (default) 22
- * or 25, to use the even older 1.X API define it to 11.
- */
 
-//C     #ifndef FUSE_USE_VERSION
-//C     #define FUSE_USE_VERSION 21
-//C     #endif
-const FUSE_USE_VERSION = 28;
-
-// C #include "fuse_common.h"
-// C 
-// C #include <fcntl.h>
-// C #include <time.h>
-// C #include <utime.h>
-// C #include <sys/types.h>
-// C #include <sys/stat.h>
-// C #include <sys/statvfs.h>
-// C #include <sys/uio.h>
-
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
 
 /* ----------------------------------------------------------- *
  * Basic FUSE API					       *
  * ----------------------------------------------------------- */
 
-/** Handle for a FUSE filesystem */
-//C     struct fuse_t;
-
-/** Structure containing a raw command */
-//C     struct fuse_cmd;
-
-//C     typedef unsigned int mode_t;
 extern (C):
 
 /** Handle for a FUSE filesystem */
@@ -63,8 +29,6 @@ struct fuse_t;
 
 /** Structure containing a raw command */
 struct fuse_cmd;
-
-//alias uint mode_t;
 
 /** Function to add an entry in a readdir() operation
  *
@@ -74,23 +38,11 @@ struct fuse_cmd;
  * @param off offset of the next entry or zero
  * @return 1 if buffer is full, zero otherwise
  */
-//C     typedef int (*fuse_fill_dir_t) (void *buf, const char *name,
-//C     				const struct stat *stbuf, off_t off);
 alias int  function(void *buf, const char *name, stat_t *stbuf, off_t off)fuse_fill_dir_t;
 
-/// fuse.c
-/* old dir handle */
-struct fuse_dirhandle {
-	fuse_fill_dir_t filler;
-	void *buf;
-};
-
 /* Used by deprecated getdir() method */
-//C     typedef struct fuse_dirhandle *fuse_dirh_t;
 alias fuse_dirhandle *fuse_dirh_t;
-//C     typedef int (*fuse_dirfil_t) (fuse_dirh_t h, const char *name, int type,
-//C     			      ino_t ino);
-alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t;
+alias int function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t;
 
 /**
  * The file system operations:
@@ -114,14 +66,15 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
  * See http://fuse_t.sourceforge.net/wiki/ for more information.  There
  * is also a snapshot of the relevant wiki pages in the doc/ folder.
  */
-//C     struct fuse_operations {
+struct fuse_operations
+{
 	/** Get file attributes.
 	 *
 	 * Similar to stat().  The 'st_dev' and 'st_blksize' fields are
 	 * ignored.	 The 'st_ino' field is ignored except if the 'use_ino'
 	 * mount option is given.
 	 */
-//C     	int (*getattr) (const char *, struct stat *);
+    int  function(char *, stat_t *)getattr;
 
 	/** Read the target of a symbolic link
 	 *
@@ -131,10 +84,10 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * buffer, it should be truncated.	The return value should be 0
 	 * for success.
 	 */
-//C     	int (*readlink) (const char *, char *, size_t);
+    int  function(char *, char *, size_t )readlink;
 
 	/* Deprecated, use readdir() instead */
-//C     	int (*getdir) (const char *, fuse_dirh_t, fuse_dirfil_t);
+    deprecated int  function(char *, fuse_dirh_t , fuse_dirfil_t )getdir;
 
 	/** Create a file node
 	 *
@@ -142,7 +95,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * nodes.  If the filesystem defines a create() method, then for
 	 * regular files that will be called instead.
 	 */
-//C     	int (*mknod) (const char *, mode_t, dev_t);
+    int  function(char *, mode_t , dev_t )mknod;
 
 	/** Create a directory 
 	 *
@@ -150,37 +103,37 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * bits set, i.e. S_ISDIR(mode) can be false.  To obtain the
 	 * correct directory type bits use  mode|S_IFDIR
 	 * */
-//C     	int (*mkdir) (const char *, mode_t);
+    int  function(char *, mode_t )mkdir;
 
 	/** Remove a file */
-//C     	int (*unlink) (const char *);
+    int  function(char *)unlink;
 
 	/** Remove a directory */
-//C     	int (*rmdir) (const char *);
+    int  function(char *)rmdir;
 
 	/** Create a symbolic link */
-//C     	int (*symlink) (const char *, const char *);
+    int  function(char *, char *)symlink;
 
 	/** Rename a file */
-//C     	int (*rename) (const char *, const char *);
+    int  function(char *, char *)rename;
 
 	/** Create a hard link to a file */
-//C     	int (*link) (const char *, const char *);
+    int  function(char *, char *)link;
 
 	/** Change the permission bits of a file */
-//C     	int (*chmod) (const char *, mode_t);
+    int  function(char *, mode_t )chmod;
 
 	/** Change the owner and group of a file */
-//C     	int (*chown) (const char *, uid_t, gid_t);
+    int  function(char *, uid_t , gid_t )chown;
 
 	/** Change the size of a file */
-//C     	int (*truncate) (const char *, off_t);
+    int  function(char *, off_t )truncate;
 
 	/** Change the access and/or modification times of a file
 	 *
 	 * Deprecated, use utimens() instead.
 	 */
-//C     	int (*utime) (const char *, struct utimbuf *);
+    deprecated int  function(char *, utimbuf *)utime;
 
 	/** File open operation
 	 *
@@ -199,7 +152,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*open) (const char *, struct fuse_file_info *);
+    int  function(char *, fuse_file_info *)open;
 
 	/** Read data from an open file
 	 *
@@ -212,8 +165,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*read) (const char *, char *, size_t, off_t,
-//C     		     struct fuse_file_info *);
+    int  function(char *, char *, size_t , off_t , fuse_file_info *)read;
 
 	/** Write data to an open file
 	 *
@@ -223,8 +175,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*write) (const char *, const char *, size_t, off_t,
-//C     		      struct fuse_file_info *);
+    int  function(char *, char *, size_t , off_t , fuse_file_info *)write;
 
 	/** Get file system statistics
 	 *
@@ -233,7 +184,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * Replaced 'struct statfs' parameter with 'struct statvfs' in
 	 * version 2.5
 	 */
-//C     	int (*statfs) (const char *, struct statvfs *);
+    int  function(char *, statvfs *)statfs;
 
 	/** Possibly flush cached data
 	 *
@@ -258,7 +209,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*flush) (const char *, struct fuse_file_info *);
+    int  function(char *, fuse_file_info *)flush;
 
 	/** Release an open file
 	 *
@@ -274,7 +225,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*release) (const char *, struct fuse_file_info *);
+    int  function(char *, fuse_file_info *)release;
 
 	/** Synchronize file contents
 	 *
@@ -283,19 +234,19 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Changed in version 2.2
 	 */
-//C     	int (*fsync) (const char *, int, struct fuse_file_info *);
+    int  function(char *, int , fuse_file_info *)fsync;
 
 	/** Set extended attributes */
-//C     	int (*setxattr) (const char *, const char *, const char *, size_t, int);
+    int  function(char *, char *, char *, size_t , int )setxattr;
 
 	/** Get extended attributes */
-//C     	int (*getxattr) (const char *, const char *, char *, size_t);
+    int  function(char *, char *, char *, size_t )getxattr;
 
 	/** List extended attributes */
-//C     	int (*listxattr) (const char *, char *, size_t);
+    int  function(char *, char *, size_t )listxattr;
 
 	/** Remove extended attributes */
-//C     	int (*removexattr) (const char *, const char *);
+    int  function(char *, char *)removexattr;
 
 	/** Open directory
 	 *
@@ -307,7 +258,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.3
 	 */
-//C     	int (*opendir) (const char *, struct fuse_file_info *);
+    int  function(char *, fuse_file_info *)opendir;
 
 	/** Read directory
 	 *
@@ -330,14 +281,13 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.3
 	 */
-//C     	int (*readdir) (const char *, void *, fuse_fill_dir_t, off_t,
-//C     			struct fuse_file_info *);
+    int  function(char *, void *, fuse_fill_dir_t , off_t , fuse_file_info *)readdir;
 
 	/** Release directory
 	 *
 	 * Introduced in version 2.3
 	 */
-//C     	int (*releasedir) (const char *, struct fuse_file_info *);
+    int  function(char *, fuse_file_info *)releasedir;
 
 	/** Synchronize directory contents
 	 *
@@ -346,7 +296,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.3
 	 */
-//C     	int (*fsyncdir) (const char *, int, struct fuse_file_info *);
+    int  function(char *, int , fuse_file_info *)fsyncdir;
 
 	/**
 	 * Initialize filesystem
@@ -358,7 +308,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * Introduced in version 2.3
 	 * Changed in version 2.6
 	 */
-//C     	void *(*init) (struct fuse_conn_info *conn);
+    void * function(fuse_conn_info *conn)init;
 
 	/**
 	 * Clean up filesystem
@@ -367,7 +317,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.3
 	 */
-//C     	void (*destroy) (void *);
+    void  function(void *)destroy;
 
 	/**
 	 * Check file access permissions
@@ -380,7 +330,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.5
 	 */
-//C     	int (*access) (const char *, int);
+    int  function(char *, int )access;
 
 	/**
 	 * Create and open a file
@@ -394,7 +344,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.5
 	 */
-//C     	int (*create) (const char *, mode_t, struct fuse_file_info *);
+    int  function(char *, mode_t , fuse_file_info *)create;
 
 	/**
 	 * Change the size of an open file
@@ -408,7 +358,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.5
 	 */
-//C     	int (*ftruncate) (const char *, off_t, struct fuse_file_info *);
+    int  function(char *, off_t , fuse_file_info *)ftruncate;
 
 	/**
 	 * Get attributes from an open file
@@ -422,7 +372,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.5
 	 */
-//C     	int (*fgetattr) (const char *, struct stat *, struct fuse_file_info *);
+    int  function(char *, stat_t *, fuse_file_info *)fgetattr;
 
 	/**
 	 * Perform POSIX file locking operation
@@ -456,8 +406,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.6
 	 */
-//C     	int (*lock) (const char *, struct fuse_file_info *, int cmd,
-//C     		     struct flock *);
+    int  function(char *, fuse_file_info *, int cmd, flock *)lock;
 
 	/**
 	 * Change the access and modification times of a file with
@@ -465,7 +414,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.6
 	 */
-//C     	int (*utimens) (const char *, const struct timespec tv[2]);
+    int  function(char *, timespec *tv)utimens;
 
 	/**
 	 * Map block index within file to block index within device
@@ -475,7 +424,10 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.6
 	 */
-//C     	int (*bmap) (const char *, size_t blocksize, uint64_t *idx);
+    int  function(char *, size_t blocksize, uint64_t *idx)bmap;
+
+	 /// Feild used for the following properties
+    uint __bitfield1;
 
 	/**
 	 * Flag indicating, that the filesystem can accept a NULL path
@@ -484,12 +436,14 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 * read, write, flush, release, fsync, readdir, releasedir,
 	 * fsyncdir, ftruncate, fgetattr and lock
 	 */
-//C     	unsigned int flag_nullpath_ok : 1;
+    @property uint flag_nullpath_ok() { return (__bitfield1 >> 0) & 0x1; }
+    @property uint flag_nullpath_ok(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffe) | (value << 0); return value; }
 
 	/**
 	 * Reserved flags, don't set
 	 */
-//C     	unsigned int flag_reserved : 31;
+    @property uint flag_reserved() { return (__bitfield1 >> 1) & 0x7fffffff; }
+    @property uint flag_reserved(uint value) { __bitfield1 = (__bitfield1 & 0xffffffff00000001) | (value << 1); return value; }
 
 	/**
 	 * Ioctl
@@ -503,8 +457,7 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.8
 	 */
-//C     	int (*ioctl) (const char *, int cmd, void *arg,
-//C     		      struct fuse_file_info *, unsigned int flags, void *data);
+    int  function(char *, int cmd, void *arg, fuse_file_info *, uint flags, void *data)ioctl;
 
 	/**
 	 * Poll for IO readiness events
@@ -523,55 +476,6 @@ alias int  function(fuse_dirh_t h, char *name, int type, ino_t ino)fuse_dirfil_t
 	 *
 	 * Introduced in version 2.8
 	 */
-//C     	int (*poll) (const char *, struct fuse_file_info *,
-//C     		     struct fuse_pollhandle *ph, unsigned *reventsp);
-//C     };
-struct fuse_operations
-{
-    int  function(char *, stat_t *)getattr;
-    int  function(char *, char *, size_t )readlink;
-    int  function(char *, fuse_dirh_t , fuse_dirfil_t )getdir;
-    int  function(char *, mode_t , dev_t )mknod;
-    int  function(char *, mode_t )mkdir;
-    int  function(char *)unlink;
-    int  function(char *)rmdir;
-    int  function(char *, char *)symlink;
-    int  function(char *, char *)rename;
-    int  function(char *, char *)link;
-    int  function(char *, mode_t )chmod;
-    int  function(char *, uid_t , gid_t )chown;
-    int  function(char *, off_t )truncate;
-    int  function(char *, utimbuf *)utime;
-    int  function(char *, fuse_file_info *)open;
-    int  function(char *, char *, size_t , off_t , fuse_file_info *)read;
-    int  function(char *, char *, size_t , off_t , fuse_file_info *)write;
-    int  function(char *, statvfs *)statfs;
-    int  function(char *, fuse_file_info *)flush;
-    int  function(char *, fuse_file_info *)release;
-    int  function(char *, int , fuse_file_info *)fsync;
-    int  function(char *, char *, char *, size_t , int )setxattr;
-    int  function(char *, char *, char *, size_t )getxattr;
-    int  function(char *, char *, size_t )listxattr;
-    int  function(char *, char *)removexattr;
-    int  function(char *, fuse_file_info *)opendir;
-    int  function(char *, void *, fuse_fill_dir_t , off_t , fuse_file_info *)readdir;
-    int  function(char *, fuse_file_info *)releasedir;
-    int  function(char *, int , fuse_file_info *)fsyncdir;
-    void * function(fuse_conn_info *conn)init;
-    void  function(void *)destroy;
-    int  function(char *, int )access;
-    int  function(char *, mode_t , fuse_file_info *)create;
-    int  function(char *, off_t , fuse_file_info *)ftruncate;
-    int  function(char *, stat_t *, fuse_file_info *)fgetattr;
-    int  function(char *, fuse_file_info *, int cmd, flock *)lock;
-    int  function(char *, timespec *tv)utimens;
-    int  function(char *, size_t blocksize, uint64_t *idx)bmap;
-    uint __bitfield1;
-    uint flag_nullpath_ok() { return (__bitfield1 >> 0) & 0x1; }
-    uint flag_nullpath_ok(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffe) | (value << 0); return value; }
-    uint flag_reserved() { return (__bitfield1 >> 1) & 0x7fffffff; }
-    uint flag_reserved(uint value) { __bitfield1 = (__bitfield1 & 0xffffffff00000001) | (value << 1); return value; }
-    int  function(char *, int cmd, void *arg, fuse_file_info *, uint flags, void *data)ioctl;
     int  function(char *, fuse_file_info *, fuse_pollhandle *ph, uint *reventsp)poll;
 }
 
@@ -580,33 +484,25 @@ struct fuse_operations
  * The uid, gid and pid fields are not filled in case of a writepage
  * operation.
  */
-//C     struct fuse_context {
-	/** Pointer to the fuse_t object */
-//C     	struct fuse_t *fuse_t;
-
-	/** User ID of the calling process */
-//C     	uid_t uid;
-
-	/** Group ID of the calling process */
-//C     	gid_t gid;
-
-	/** Thread ID of the calling process */
-//C     	pid_t pid;
-
-	/** Private filesystem data */
-//C     	void *private_data;
-
-	/** Umask of the calling process (introduced in version 2.8) */
-//C     	mode_t umask;
-//C     };
 struct fuse_context
 {
-    fuse_t *fuse;
-    uid_t uid;
-    gid_t gid;
-    pid_t pid;
-    void *private_data;
-    mode_t umask;
+	/** Pointer to the fuse_t object */
+	fuse_t *fuse;
+
+	/** User ID of the calling process */
+	uid_t uid;
+
+	/** Group ID of the calling process */
+	gid_t gid;
+
+	/** Thread ID of the calling process */
+	pid_t pid;
+
+	/** Private filesystem data */
+	void *private_data;
+
+	/** Umask of the calling process (introduced in version 2.8) */
+	mode_t umask;
 }
 
 /**
@@ -632,18 +528,8 @@ struct fuse_context
  * @param user_data user data supplied in the context during the init() method
  * @return 0 on success, nonzero on failure
  */
-/*
-  int fuse_main(int argc, char *argv[], const struct fuse_operations *op,
-  void *user_data);
-  int fuse_main(int argc, char *argv[], const struct fuse_operations *op,
-  void *user_data);
-*/
-//C     #define fuse_main(argc, argv, op, user_data)					fuse_main_real(argc, argv, op, sizeof(*(op)), user_data)
-
-int fuse_main(uint argc, char **argv, fuse_operations *op) {
-	assert(argc < int.max && argc > 0);
-
-	return fuse_main_real(cast(int) argc, argv, op, (*(op)).sizeof, null);
+int fuse_main(int argc, char **argv, fuse_operations *op, void* user_data = null) {
+	return fuse_main_real(argc, argv, op, (*(op)).sizeof, user_data);
 }
 
 /* ----------------------------------------------------------- *
@@ -660,9 +546,6 @@ int fuse_main(uint argc, char **argv, fuse_operations *op) {
  * @param user_data user data supplied in the context during the init() method
  * @return the created FUSE handle
  */
-//C     struct fuse_t *fuse_new(struct fuse_chan *ch, struct fuse_args *args,
-//C     		      const struct fuse_operations *op, size_t op_size,
-//C     		      void *user_data);
 fuse_t * fuse_new(fuse_chan *ch, fuse_args *args, fuse_operations *op, size_t op_size, void *user_data);
 
 /**
@@ -675,7 +558,6 @@ fuse_t * fuse_new(fuse_chan *ch, fuse_args *args, fuse_operations *op, size_t op
  *
  * @param f the FUSE handle
  */
-//C     void fuse_destroy(struct fuse_t *f);
 void  fuse_destroy(fuse_t *f);
 
 /**
@@ -687,7 +569,6 @@ void  fuse_destroy(fuse_t *f);
  * @param f the FUSE handle
  * @return 0 if no error occurred, -1 otherwise
  */
-//C     int fuse_loop(struct fuse_t *f);
 int  fuse_loop(fuse_t *f);
 
 /**
@@ -695,7 +576,6 @@ int  fuse_loop(fuse_t *f);
  *
  * @param f the FUSE handle
  */
-//C     void fuse_exit(struct fuse_t *f);
 void  fuse_exit(fuse_t *f);
 
 /**
@@ -711,7 +591,6 @@ void  fuse_exit(fuse_t *f);
  * @param f the FUSE handle
  * @return 0 if no error occurred, -1 otherwise
  */
-//C     int fuse_loop_mt(struct fuse_t *f);
 int  fuse_loop_mt(fuse_t *f);
 
 /**
@@ -722,7 +601,6 @@ int  fuse_loop_mt(fuse_t *f);
  *
  * @return the context
  */
-//C     struct fuse_context *fuse_get_context(void);
 fuse_context * fuse_get_context();
 
 /**
@@ -743,7 +621,6 @@ fuse_context * fuse_get_context();
  * @param list array of group IDs to be filled in
  * @return the total number of supplementary group IDs or -errno on failure
  */
-//C     int fuse_getgroups(int size, gid_t list[]);
 int  fuse_getgroups(int size, gid_t *list);
 
 /**
@@ -751,7 +628,6 @@ int  fuse_getgroups(int size, gid_t *list);
  *
  * @return 1 if the request has been interrupted, 0 otherwise
  */
-//C     int fuse_interrupted(void);
 int  fuse_interrupted();
 
 /**
@@ -759,20 +635,16 @@ int  fuse_interrupted();
  *
  * @return -EINVAL
  */
-//C     int fuse_invalidate(struct fuse_t *f, const char *path);
 int  fuse_invalidate(fuse_t *f, char *path);
 
 /* Deprecated, don't use */
-//C     int fuse_is_lib_option(const char *opt);
-int  fuse_is_lib_option(char *opt);
+deprecated int  fuse_is_lib_option(char *opt);
 
 /**
  * The real main function
  *
  * Do not call this directly, use fuse_main()
  */
-//C     int fuse_main_real(int argc, char *argv[], const struct fuse_operations *op,
-//C     		   size_t op_size, void *user_data);
 int  fuse_main_real(int argc, char **argv, fuse_operations *op, size_t op_size, void *user_data);
 
 /*
@@ -784,7 +656,6 @@ int  fuse_main_real(int argc, char **argv, fuse_operations *op, size_t op_size, 
  *
  * This is opaque object represents a filesystem layer
  */
-//C     struct fuse_fs;
 struct fuse_fs {
 	fuse_operations op;
 	fuse_module *m;
@@ -793,7 +664,7 @@ struct fuse_fs {
 	int debug_flag;
 };
 
-/*
+/**
  * These functions call the relevant filesystem operation, and return
  * the result.
  *
@@ -801,113 +672,83 @@ struct fuse_fs {
  * exception of fuse_fs_open, fuse_fs_release, fuse_fs_opendir,
  * fuse_fs_releasedir and fuse_fs_statfs, which return 0.
  */
-
-//C     int fuse_fs_getattr(struct fuse_fs *fs, const char *path, struct stat *buf);
-int  fuse_fs_getattr(fuse_fs *fs, char *path, stat_t *buf);
-//C     int fuse_fs_fgetattr(struct fuse_fs *fs, const char *path, struct stat *buf,
-//C     		     struct fuse_file_info *fi);
-int  fuse_fs_fgetattr(fuse_fs *fs, char *path, stat_t *buf, fuse_file_info *fi);
-//C     int fuse_fs_rename(struct fuse_fs *fs, const char *oldpath,
-//C     		   const char *newpath);
+int  fuse_fs_getattr(fuse_fs *fs, const char *path, stat_t *buf);
+/// Ditto
+int  fuse_fs_fgetattr(fuse_fs *fs, const char *path, stat_t *buf, fuse_file_info *fi);
+/// Ditto
 int  fuse_fs_rename(fuse_fs *fs, char *oldpath, char *newpath);
-//C     int fuse_fs_unlink(struct fuse_fs *fs, const char *path);
-int  fuse_fs_unlink(fuse_fs *fs, char *path);
-//C     int fuse_fs_rmdir(struct fuse_fs *fs, const char *path);
-int  fuse_fs_rmdir(fuse_fs *fs, char *path);
-//C     int fuse_fs_symlink(struct fuse_fs *fs, const char *linkname,
-//C     		    const char *path);
-int  fuse_fs_symlink(fuse_fs *fs, char *linkname, char *path);
-//C     int fuse_fs_link(struct fuse_fs *fs, const char *oldpath, const char *newpath);
+/// Ditto
+int  fuse_fs_unlink(fuse_fs *fs, const char *path);
+/// Ditto
+int  fuse_fs_rmdir(fuse_fs *fs, const char *path);
+/// Ditto
+int  fuse_fs_symlink(fuse_fs *fs, char *linkname, const char *path);
+/// Ditto
 int  fuse_fs_link(fuse_fs *fs, char *oldpath, char *newpath);
-//C     int fuse_fs_release(struct fuse_fs *fs,	 const char *path,
-//C     		    struct fuse_file_info *fi);
-int  fuse_fs_release(fuse_fs *fs, char *path, fuse_file_info *fi);
-//C     int fuse_fs_open(struct fuse_fs *fs, const char *path,
-//C     		 struct fuse_file_info *fi);
-int  fuse_fs_open(fuse_fs *fs, char *path, fuse_file_info *fi);
-//C     int fuse_fs_read(struct fuse_fs *fs, const char *path, char *buf, size_t size,
-//C     		 off_t off, struct fuse_file_info *fi);
-int  fuse_fs_read(fuse_fs *fs, char *path, char *buf, size_t size, off_t off, fuse_file_info *fi);
-//C     int fuse_fs_write(struct fuse_fs *fs, const char *path, const char *buf,
-//C     		  size_t size, off_t off, struct fuse_file_info *fi);
-int  fuse_fs_write(fuse_fs *fs, char *path, char *buf, size_t size, off_t off, fuse_file_info *fi);
-//C     int fuse_fs_fsync(struct fuse_fs *fs, const char *path, int datasync,
-//C     		  struct fuse_file_info *fi);
-int  fuse_fs_fsync(fuse_fs *fs, char *path, int datasync, fuse_file_info *fi);
-//C     int fuse_fs_flush(struct fuse_fs *fs, const char *path,
-//C     		  struct fuse_file_info *fi);
-int  fuse_fs_flush(fuse_fs *fs, char *path, fuse_file_info *fi);
-//C     int fuse_fs_statfs(struct fuse_fs *fs, const char *path, struct statvfs *buf);
-int  fuse_fs_statfs(fuse_fs *fs, char *path, statvfs *buf);
-//C     int fuse_fs_opendir(struct fuse_fs *fs, const char *path,
-//C     		    struct fuse_file_info *fi);
-int  fuse_fs_opendir(fuse_fs *fs, char *path, fuse_file_info *fi);
-//C     int fuse_fs_readdir(struct fuse_fs *fs, const char *path, void *buf,
-//C     		    fuse_fill_dir_t filler, off_t off,
-//C     		    struct fuse_file_info *fi);
-int  fuse_fs_readdir(fuse_fs *fs, char *path, void *buf, fuse_fill_dir_t filler, off_t off, fuse_file_info *fi);
-//C     int fuse_fs_fsyncdir(struct fuse_fs *fs, const char *path, int datasync,
-//C     		     struct fuse_file_info *fi);
-int  fuse_fs_fsyncdir(fuse_fs *fs, char *path, int datasync, fuse_file_info *fi);
-//C     int fuse_fs_releasedir(struct fuse_fs *fs, const char *path,
-//C     		       struct fuse_file_info *fi);
-int  fuse_fs_releasedir(fuse_fs *fs, char *path, fuse_file_info *fi);
-//C     int fuse_fs_create(struct fuse_fs *fs, const char *path, mode_t mode,
-//C     		   struct fuse_file_info *fi);
-int  fuse_fs_create(fuse_fs *fs, char *path, mode_t mode, fuse_file_info *fi);
-//C     int fuse_fs_lock(struct fuse_fs *fs, const char *path,
-//C     		 struct fuse_file_info *fi, int cmd, struct flock *lock);
-int  fuse_fs_lock(fuse_fs *fs, char *path, fuse_file_info *fi, int cmd, flock *lock);
-//C     int fuse_fs_chmod(struct fuse_fs *fs, const char *path, mode_t mode);
-int  fuse_fs_chmod(fuse_fs *fs, char *path, mode_t mode);
-//C     int fuse_fs_chown(struct fuse_fs *fs, const char *path, uid_t uid, gid_t gid);
-int  fuse_fs_chown(fuse_fs *fs, char *path, uid_t uid, gid_t gid);
-//C     int fuse_fs_truncate(struct fuse_fs *fs, const char *path, off_t size);
-int  fuse_fs_truncate(fuse_fs *fs, char *path, off_t size);
-//C     int fuse_fs_ftruncate(struct fuse_fs *fs, const char *path, off_t size,
-//C     		      struct fuse_file_info *fi);
-int  fuse_fs_ftruncate(fuse_fs *fs, char *path, off_t size, fuse_file_info *fi);
-//C     int fuse_fs_utimens(struct fuse_fs *fs, const char *path,
-//C     		    const struct timespec tv[2]);
-int  fuse_fs_utimens(fuse_fs *fs, char *path, timespec *tv);
-//C     int fuse_fs_access(struct fuse_fs *fs, const char *path, int mask);
-int  fuse_fs_access(fuse_fs *fs, char *path, int mask);
-//C     int fuse_fs_readlink(struct fuse_fs *fs, const char *path, char *buf,
-//C     		     size_t len);
-int  fuse_fs_readlink(fuse_fs *fs, char *path, char *buf, size_t len);
-//C     int fuse_fs_mknod(struct fuse_fs *fs, const char *path, mode_t mode,
-//C     		  dev_t rdev);
-int  fuse_fs_mknod(fuse_fs *fs, char *path, mode_t mode, dev_t rdev);
-//C     int fuse_fs_mkdir(struct fuse_fs *fs, const char *path, mode_t mode);
-int  fuse_fs_mkdir(fuse_fs *fs, char *path, mode_t mode);
-//C     int fuse_fs_setxattr(struct fuse_fs *fs, const char *path, const char *name,
-//C     		     const char *value, size_t size, int flags);
-int  fuse_fs_setxattr(fuse_fs *fs, char *path, char *name, char *value, size_t size, int flags);
-//C     int fuse_fs_getxattr(struct fuse_fs *fs, const char *path, const char *name,
-//C     		     char *value, size_t size);
-int  fuse_fs_getxattr(fuse_fs *fs, char *path, char *name, char *value, size_t size);
-//C     int fuse_fs_listxattr(struct fuse_fs *fs, const char *path, char *list,
-//C     		      size_t size);
-int  fuse_fs_listxattr(fuse_fs *fs, char *path, char *list, size_t size);
-//C     int fuse_fs_removexattr(struct fuse_fs *fs, const char *path,
-//C     			const char *name);
-int  fuse_fs_removexattr(fuse_fs *fs, char *path, char *name);
-//C     int fuse_fs_bmap(struct fuse_fs *fs, const char *path, size_t blocksize,
-//C     		 uint64_t *idx);
-int  fuse_fs_bmap(fuse_fs *fs, char *path, size_t blocksize, uint64_t *idx);
-//C     int fuse_fs_ioctl(struct fuse_fs *fs, const char *path, int cmd, void *arg,
-//C     		  struct fuse_file_info *fi, unsigned int flags, void *data);
-int  fuse_fs_ioctl(fuse_fs *fs, char *path, int cmd, void *arg, fuse_file_info *fi, uint flags, void *data);
-//C     int fuse_fs_poll(struct fuse_fs *fs, const char *path,
-//C     		 struct fuse_file_info *fi, struct fuse_pollhandle *ph,
-//C     		 unsigned *reventsp);
-int  fuse_fs_poll(fuse_fs *fs, char *path, fuse_file_info *fi, fuse_pollhandle *ph, uint *reventsp);
-//C     void fuse_fs_init(struct fuse_fs *fs, struct fuse_conn_info *conn);
+/// Ditto
+int  fuse_fs_release(fuse_fs *fs, const char *path, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_open(fuse_fs *fs, const char *path, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_read(fuse_fs *fs, const char *path, char *buf, size_t size, off_t off, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_write(fuse_fs *fs, const char *path, char *buf, size_t size, off_t off, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_fsync(fuse_fs *fs, const char *path, int datasync, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_flush(fuse_fs *fs, const char *path, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_statfs(fuse_fs *fs, const char *path, statvfs *buf);
+/// Ditto
+int  fuse_fs_opendir(fuse_fs *fs, const char *path, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_readdir(fuse_fs *fs, const char *path, void *buf, fuse_fill_dir_t filler, off_t off, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_fsyncdir(fuse_fs *fs, const char *path, int datasync, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_releasedir(fuse_fs *fs, const char *path, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_create(fuse_fs *fs, const char *path, mode_t mode, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_lock(fuse_fs *fs, const char *path, fuse_file_info *fi, int cmd, flock *lock);
+/// Ditto
+int  fuse_fs_chmod(fuse_fs *fs, const char *path, mode_t mode);
+/// Ditto
+int  fuse_fs_chown(fuse_fs *fs, const char *path, uid_t uid, gid_t gid);
+/// Ditto
+int  fuse_fs_truncate(fuse_fs *fs, const char *path, off_t size);
+/// Ditto
+int  fuse_fs_ftruncate(fuse_fs *fs, const char *path, off_t size, fuse_file_info *fi);
+/// Ditto
+int  fuse_fs_utimens(fuse_fs *fs, const char *path, timespec *tv);
+/// Ditto
+int  fuse_fs_access(fuse_fs *fs, const char *path, int mask);
+/// Ditto
+int  fuse_fs_readlink(fuse_fs *fs, const char *path, char *buf, size_t len);
+/// Ditto
+int  fuse_fs_mknod(fuse_fs *fs, const char *path, mode_t mode, dev_t rdev);
+/// Ditto
+int  fuse_fs_mkdir(fuse_fs *fs, const char *path, mode_t mode);
+/// Ditto
+int  fuse_fs_setxattr(fuse_fs *fs, const char *path, char *name, char *value, size_t size, int flags);
+/// Ditto
+int  fuse_fs_getxattr(fuse_fs *fs, const char *path, char *name, char *value, size_t size);
+/// Ditto
+int  fuse_fs_listxattr(fuse_fs *fs, const char *path, char *list, size_t size);
+/// Ditto
+int  fuse_fs_removexattr(fuse_fs *fs, const char *path, char *name);
+/// Ditto
+int  fuse_fs_bmap(fuse_fs *fs, const char *path, size_t blocksize, uint64_t *idx);
+/// Ditto
+int  fuse_fs_ioctl(fuse_fs *fs, const char *path, int cmd, void *arg, fuse_file_info *fi, uint flags, void *data);
+/// Ditto
+int  fuse_fs_poll(fuse_fs *fs, const char *path, fuse_file_info *fi, fuse_pollhandle *ph, uint *reventsp);
+/// Ditto
 void  fuse_fs_init(fuse_fs *fs, fuse_conn_info *conn);
-//C     void fuse_fs_destroy(struct fuse_fs *fs);
+/// Ditto
 void  fuse_fs_destroy(fuse_fs *fs);
 
-//C     int fuse_notify_poll(struct fuse_pollhandle *ph);
+/// Ditto
 int  fuse_notify_poll(fuse_pollhandle *ph);
 
 /**
@@ -921,8 +762,6 @@ int  fuse_notify_poll(fuse_pollhandle *ph);
  * @param user_data user data supplied in the context during the init() method
  * @return a new filesystem object
  */
-//C     struct fuse_fs *fuse_fs_new(const struct fuse_operations *op, size_t op_size,
-//C     			    void *user_data);
 fuse_fs * fuse_fs_new(fuse_operations *op, size_t op_size, void *user_data);
 
 /**
@@ -935,11 +774,12 @@ fuse_fs * fuse_fs_new(fuse_operations *op, size_t op_size, void *user_data);
  * objects are created and pushed onto the stack with the 'factory'
  * function.
  */
-//C     struct fuse_module {
+struct fuse_module
+{
 	/**
 	 * Name of filesystem
 	 */
-//C     	const char *name;
+    char *name;
 
 	/**
 	 * Factory for creating filesystem objects
@@ -955,19 +795,14 @@ fuse_fs * fuse_fs_new(fuse_operations *op, size_t op_size, void *user_data);
 	 * @param fs NULL terminated filesystem object vector
 	 * @return the new filesystem object
 	 */
-//C     	struct fuse_fs *(*factory)(struct fuse_args *args,
-//C     				   struct fuse_fs *fs[]);
-
-//C     	struct fuse_module *next;
-//C     	struct fusemod_so *so;
-//C     	int ctr;
-//C     };
-struct fuse_module
-{
-    char *name;
     fuse_fs * function(fuse_args *args, fuse_fs **fs)factory;
+
+	 ///
     fuse_module *next;
+	 ///
     fusemod_so *so;
+
+	 ///
     int ctr;
 }
 
@@ -977,7 +812,6 @@ struct fuse_module
  * This function is used by FUSE_REGISTER_MODULE and there's usually
  * no need to call it directly
  */
-//C     void fuse_register_module(struct fuse_module *mod);
 void  fuse_register_module(fuse_module *mod);
 
 /**
@@ -997,93 +831,30 @@ void  fuse_register_module(fuse_module *mod);
    from the 3.0 API.  Use the lowlevel session functions instead */
 
 /** Function type used to process commands */
-//C     typedef void (*fuse_processor_t)(struct fuse_t *, struct fuse_cmd *, void *);
 alias void  function(fuse_t *, fuse_cmd *, void *)fuse_processor_t;
 
 /** This is the part of fuse_main() before the event loop */
-//C     struct fuse_t *fuse_setup(int argc, char *argv[],
-//C     			const struct fuse_operations *op, size_t op_size,
-//C     			char **mountpoint, int *multithreaded,
-//C     			void *user_data);
 fuse_t * fuse_setup(int argc, char **argv, fuse_operations *op, size_t op_size, char **mountpoint, int *multithreaded, void *user_data);
 
 /** This is the part of fuse_main() after the event loop */
-//C     void fuse_teardown(struct fuse_t *fuse_t, char *mountpoint);
 void  fuse_teardown(fuse_t *fuse_t, char *mountpoint);
 
 /** Read a single command.  If none are read, return NULL */
-//C     struct fuse_cmd *fuse_read_cmd(struct fuse_t *f);
 fuse_cmd * fuse_read_cmd(fuse_t *f);
 
 /** Process a single command */
-//C     void fuse_process_cmd(struct fuse_t *f, struct fuse_cmd *cmd);
 void  fuse_process_cmd(fuse_t *f, fuse_cmd *cmd);
 
 /** Multi threaded event loop, which calls the custom command
     processor function */
-//C     int fuse_loop_mt_proc(struct fuse_t *f, fuse_processor_t proc, void *data);
 int  fuse_loop_mt_proc(fuse_t *f, fuse_processor_t proc, void *data);
 
 /** Return the exited flag, which indicates if fuse_exit() has been
     called */
-//C     int fuse_exited(struct fuse_t *f);
 int  fuse_exited(fuse_t *f);
 
 /** This function is obsolete and implemented as a no-op */
-//C     void fuse_set_getcontext_func(struct fuse_context *(*func)(void));
 void  fuse_set_getcontext_func(fuse_context * function()func);
 
 /** Get session from fuse_t object */
-//C     struct fuse_session *fuse_get_session(struct fuse_t *f);
 fuse_session * fuse_get_session(fuse_t *f);
-
-/* ----------------------------------------------------------- *
- * Compatibility stuff					       *
- * ----------------------------------------------------------- */
-
-//#if FUSE_USE_VERSION < 26
-//#  include "fuse_compat.h"
-//#  undef fuse_main
-//#  if FUSE_USE_VERSION == 25
-//#    define fuse_main(argc, argv, op)				//	fuse_main_real_compat25(argc, argv, op, sizeof(*(op)))
-//#    define fuse_new fuse_new_compat25
-//#    define fuse_setup fuse_setup_compat25
-//#    define fuse_teardown fuse_teardown_compat22
-//#    define fuse_operations fuse_operations_compat25
-//#  elif FUSE_USE_VERSION == 22
-//#    define fuse_main(argc, argv, op)				//	fuse_main_real_compat22(argc, argv, op, sizeof(*(op)))
-//#    define fuse_new fuse_new_compat22
-//#    define fuse_setup fuse_setup_compat22
-//#    define fuse_teardown fuse_teardown_compat22
-//#    define fuse_operations fuse_operations_compat22
-//#    define fuse_file_info fuse_file_info_compat
-//#  elif FUSE_USE_VERSION == 24
-//#    error Compatibility with high-level API version 24 not supported
-//#  else
-//#    define fuse_dirfil_t fuse_dirfil_t_compat
-//#    define __fuse_read_cmd fuse_read_cmd
-//#    define __fuse_process_cmd fuse_process_cmd
-//#    define __fuse_loop_mt fuse_loop_mt_proc
-//#    if FUSE_USE_VERSION == 21
-//#      define fuse_operations fuse_operations_compat2
-//#      define fuse_main fuse_main_compat2
-//#      define fuse_new fuse_new_compat2
-//#      define __fuse_setup fuse_setup_compat2
-//#      define __fuse_teardown fuse_teardown_compat22
-//#      define __fuse_exited fuse_exited
-//#      define __fuse_set_getcontext_func fuse_set_getcontext_func
-//#    else
-//#      define fuse_statfs fuse_statfs_compat1
-//#      define fuse_operations fuse_operations_compat1
-//#      define fuse_main fuse_main_compat1
-//#      define fuse_new fuse_new_compat1
-//#      define FUSE_DEBUG FUSE_DEBUG_COMPAT1
-//#    endif
-//#  endif
-//#endif
-
-//#ifdef __cplusplus
-//}
-//#endif
-
-//C     #endif /* _FUSE_H_ */

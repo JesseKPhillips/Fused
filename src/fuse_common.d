@@ -9,17 +9,6 @@ module fuse_common;
   See the file COPYING.LIB.
 */
 
-/** @file */
-
-//#if !defined(_FUSE_H_) && !defined(_FUSE_LOWLEVEL_H_)
-//#error "Never include <fuse_common.h> directly; use <fuse.h> or <fuse_lowlevel.h> instead."
-//#endif
-//
-//C     #ifndef _FUSE_COMMON_H_
-//C     #define _FUSE_COMMON_H_
-
-//C     #include "fuse_opt.h"
-
 public import core.sys.posix.fcntl;
 public import core.sys.posix.sys.stat;
 public import core.sys.posix.sys.time;
@@ -27,93 +16,67 @@ public import core.sys.posix.sys.types;
 public import core.sys.posix.inttypes;
 
 public import fuse_opt;
-// C #include <stdint.h>
 
 /** Major version of FUSE library interface */
-//C     #define FUSE_MAJOR_VERSION 2
-
 const FUSE_MAJOR_VERSION = 2;
+
 /** Minor version of FUSE library interface */
-//C     #define FUSE_MINOR_VERSION 8
-
 const FUSE_MINOR_VERSION = 8;
-//C     #define FUSE_MAKE_VERSION(maj, min)  ((maj) * 10 + (min))
-//C     #define FUSE_VERSION FUSE_MAKE_VERSION(FUSE_MAJOR_VERSION, FUSE_MINOR_VERSION)
 
-/* This interface uses 64 bit off_t */
-//C     #if _FILE_OFFSET_BITS != 64
-//C     #error Please add -D_FILE_OFFSET_BITS=64 to your compile flags!
-//C     #endif
-
-//C     #ifdef __cplusplus
-//C     extern "C" {
-//C     #endif
+auto FUSE_VERSION() { return FUSE_MAJOR_VERSION*10 + FUSE_MINOR_VERSION; }
 
 /**
  * Information about open files
  *
  * Changed in version 2.5
  */
-//C     struct fuse_file_info {
-	/** Open flags.	 Available in open() and release() */
-//C     	int flags;
-
-	/** Old file handle, don't use */
-//C     	unsigned long fh_old;
-
-	/** In case of a write operation indicates if this was caused by a
-	    writepage */
-//C     	int writepage;
-
-	/** Can be filled in by open, to use direct I/O on this file.
-	    Introduced in version 2.4 */
-//C     	unsigned int direct_io : 1;
-
-	/** Can be filled in by open, to indicate, that cached file data
-	    need not be invalidated.  Introduced in version 2.4 */
-//C     	unsigned int keep_cache : 1;
-
-	/** Indicates a flush operation.  Set in flush operation, also
-	    maybe set in highlevel lock operation and lowlevel release
-	    operation.	Introduced in version 2.6 */
-//C     	unsigned int flush : 1;
-
-	/** Can be filled in by open, to indicate that the file is not
-	    seekable.  Introduced in version 2.8 */
-//C     	unsigned int nonseekable : 1;
-
-	/** Padding.  Do not use*/
-//C     	unsigned int padding : 28;
-
-	/** File handle.  May be filled in by filesystem in open().
-	    Available in all other file operations */
-	//uint64_t fh;
-
-	/** Lock owner id.  Available in locking operations and flush */
-	//uint64_t lock_owner;
-//C     };
 struct fuse_file_info
 {
-    int flags;
-    uint fh_old;
-    int writepage;
-    uint __bitfield1;
+	/** Open flags.	 Available in open() and release() */
+	int flags;
+
+	/** Old file handle, don't use */
+	uint fh_old;
+
+	/** In case of a write operation indicates if this was caused by a
+	  writepage */
+	//C     	int writepage;
+	int writepage;
+
+	/// Bitfield used by properties below.
+	uint __bitfield1;
+
+	/** Can be filled in by open, to use direct I/O on this file.
+	  Introduced in version 2.4 */
+	@property uint direct_io() { return (__bitfield1 >> 0) & 0x1; }
+	@property uint direct_io(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffe) | (value << 0); return value; }
+
+	/** Can be filled in by open, to indicate, that cached file data
+	  need not be invalidated.  Introduced in version 2.4 */
+	@property uint keep_cache() { return (__bitfield1 >> 1) & 0x1; }
+	@property uint keep_cache(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffd) | (value << 1); return value; }
+
+	/** Indicates a flush operation.  Set in flush operation, also
+	  maybe set in highlevel lock operation and lowlevel release
+	  operation.	Introduced in version 2.6 */
+	@property uint flush() { return (__bitfield1 >> 2) & 0x1; }
+	@property uint flush(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffb) | (value << 2); return value; }
+
+	/** Can be filled in by open, to indicate that the file is not
+	  seekable.  Introduced in version 2.8 */
+	@property uint nonseekable() { return (__bitfield1 >> 3) & 0x1; }
+	@property uint nonseekable(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffff7) | (value << 3); return value; }
+
+	/** Padding.  Do not use*/
+	@property uint padding() { return (__bitfield1 >> 4) & 0xfffffff; }
+	@property uint padding(uint value) { __bitfield1 = (__bitfield1 & 0xffffffff0000000f) | (value << 4); return value; }
+
 	/** File handle.  May be filled in by filesystem in open().
-	    Available in all other file operations */
+	  Available in all other file operations */
 	uint64_t fh;
 
 	/** Lock owner id.  Available in locking operations and flush */
 	uint64_t lock_owner;
-   @property uint direct_io() { return (__bitfield1 >> 0) & 0x1; }
-   @property uint direct_io(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffe) | (value << 0); return value; }
-   @property uint keep_cache() { return (__bitfield1 >> 1) & 0x1; }
-   @property uint keep_cache(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffd) | (value << 1); return value; }
-   @property uint flush() { return (__bitfield1 >> 2) & 0x1; }
-   @property uint flush(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffffb) | (value << 2); return value; }
-   @property uint nonseekable() { return (__bitfield1 >> 3) & 0x1; }
-   @property uint nonseekable(uint value) { __bitfield1 = (__bitfield1 & 0xfffffffffffffff7) | (value << 3); return value; }
-   @property uint padding() { return (__bitfield1 >> 4) & 0xfffffff; }
-   @property uint padding(uint value) { __bitfield1 = (__bitfield1 & 0xffffffff0000000f) | (value << 4); return value; }
 }
 
 /**
@@ -126,12 +89,17 @@ struct fuse_file_info
  * FUSE_CAP_BIG_WRITES: filesystem can handle write size larger than 4kB
  * FUSE_CAP_DONT_MASK: don't apply umask to file mode on create operations
  */
-//C     #define FUSE_CAP_ASYNC_READ	(1 << 0)
-//C     #define FUSE_CAP_POSIX_LOCKS	(1 << 1)
-//C     #define FUSE_CAP_ATOMIC_O_TRUNC	(1 << 3)
-//C     #define FUSE_CAP_EXPORT_SUPPORT	(1 << 4)
-//C     #define FUSE_CAP_BIG_WRITES	(1 << 5)
-//C     #define FUSE_CAP_DONT_MASK	(1 << 6)
+enum FUSE_CAP_ASYNC_READ      = (1 << 0);
+/// Ditto
+enum FUSE_CAP_POSIX_LOCKS     = (1 << 1);
+/// Ditto
+enum FUSE_CAP_ATOMIC_O_TRUNC  = (1 << 3);
+/// Ditto
+enum FUSE_CAP_EXPORT_SUPPORT  = (1 << 4);
+/// Ditto
+enum FUSE_CAP_BIG_WRITES      = (1 << 5);
+/// Ditto
+enum FUSE_CAP_DONT_MASK       = (1 << 6);
 
 /**
  * Ioctl flags
@@ -142,13 +110,15 @@ struct fuse_file_info
  *
  * FUSE_IOCTL_MAX_IOV: maximum of in_iovecs + out_iovecs
  */
-//C     #define FUSE_IOCTL_COMPAT	(1 << 0)
-//C     #define FUSE_IOCTL_UNRESTRICTED	(1 << 1)
-//C     #define FUSE_IOCTL_RETRY	(1 << 2)
+enum FUSE_IOCTL_COMPAT        = (1 << 0);
+/// Ditto
+enum FUSE_IOCTL_UNRESTRICTED  = (1 << 1);
+/// Ditto
+enum FUSE_IOCTL_RETRY         = (1 << 2);
 
-//C     #define FUSE_IOCTL_MAX_IOV	256
-
+/// Ditto
 const FUSE_IOCTL_MAX_IOV = 256;
+
 /**
  * Connection information, passed to the ->init() method
  *
@@ -156,64 +126,51 @@ const FUSE_IOCTL_MAX_IOV = 256;
  * indicate the value requested by the filesystem.  The requested
  * value must usually be smaller than the indicated value.
  */
-//C     struct fuse_conn_info {
+struct fuse_conn_info
+{
 	/**
 	 * Major version of the protocol (read-only)
 	 */
-//C     	unsigned proto_major;
+	uint proto_major;
 
 	/**
 	 * Minor version of the protocol (read-only)
 	 */
-//C     	unsigned proto_minor;
+	uint proto_minor;
 
 	/**
 	 * Is asynchronous read supported (read-write)
 	 */
-//C     	unsigned async_read;
+	uint async_read;
 
 	/**
 	 * Maximum size of the write buffer
 	 */
-//C     	unsigned max_write;
+	uint max_write;
 
 	/**
 	 * Maximum readahead
 	 */
-//C     	unsigned max_readahead;
+	uint max_readahead;
 
 	/**
 	 * Capability flags, that the kernel supports
 	 */
-//C     	unsigned capable;
+	uint capable;
 
 	/**
 	 * Capability flags, that the filesystem wants to enable
 	 */
-//C     	unsigned want;
+	uint want;
 
 	/**
 	 * For future use.
 	 */
-//C     	unsigned reserved[25];
-//C     };
-struct fuse_conn_info
-{
-    uint proto_major;
-    uint proto_minor;
-    uint async_read;
-    uint max_write;
-    uint max_readahead;
-    uint capable;
-    uint want;
-    uint [25]reserved;
+	uint[25] reserved;
 }
 
-//C     struct fuse_session;
 extern (C) struct fuse_session;
-//C     struct fuse_chan;
 extern (C) struct fuse_chan;
-//C     struct fuse_pollhandle;
 extern (C) struct fuse_pollhandle;
 
 /**
@@ -226,7 +183,6 @@ extern (C) struct fuse_pollhandle;
  * @param args argument vector
  * @return the communication channel on success, NULL on failure
  */
-//C     struct fuse_chan *fuse_mount(const char *mountpoint, struct fuse_args *args);
 extern (C):
 fuse_chan * fuse_mount(char *mountpoint, fuse_args *args);
 
@@ -236,7 +192,6 @@ fuse_chan * fuse_mount(char *mountpoint, fuse_args *args);
  * @param mountpoint the mount point path
  * @param ch the communication channel
  */
-//C     void fuse_unmount(const char *mountpoint, struct fuse_chan *ch);
 void  fuse_unmount(char *mountpoint, fuse_chan *ch);
 
 /**
@@ -260,8 +215,6 @@ void  fuse_unmount(char *mountpoint, fuse_chan *ch);
  * @param foreground set to 1 if one of the relevant options is present
  * @return 0 on success, -1 on failure
  */
-//C     int fuse_parse_cmdline(struct fuse_args *args, char **mountpoint,
-//C     		       int *multithreaded, int *foreground);
 int  fuse_parse_cmdline(fuse_args *args, char **mountpoint, int *multithreaded, int *foreground);
 
 /**
@@ -270,7 +223,6 @@ int  fuse_parse_cmdline(fuse_args *args, char **mountpoint, int *multithreaded, 
  * @param foreground if true, stay in the foreground
  * @return 0 on success, -1 on failure
  */
-//C     int fuse_daemonize(int foreground);
 int  fuse_daemonize(int foreground);
 
 /**
@@ -278,7 +230,6 @@ int  fuse_daemonize(int foreground);
  *
  * @return the version
  */
-//C     int fuse_version(void);
 int  fuse_version();
 
 /**
@@ -286,7 +237,6 @@ int  fuse_version();
  *
  * @param ph the poll handle
  */
-//C     void fuse_pollhandle_destroy(struct fuse_pollhandle *ph);
 void  fuse_pollhandle_destroy(fuse_pollhandle *ph);
 
 /* ----------------------------------------------------------- *
@@ -302,7 +252,6 @@ void  fuse_pollhandle_destroy(fuse_pollhandle *ph);
  * @param se the session to exit
  * @return 0 on success, -1 on failure
  */
-//C     int fuse_set_signal_handlers(struct fuse_session *se);
 int  fuse_set_signal_handlers(fuse_session *se);
 
 /**
@@ -313,5 +262,4 @@ int  fuse_set_signal_handlers(fuse_session *se);
  *
  * @param se the same session as given in fuse_set_signal_handlers()
  */
-//C     void fuse_remove_signal_handlers(struct fuse_session *se);
 void  fuse_remove_signal_handlers(fuse_session *se);

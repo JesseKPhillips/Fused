@@ -8,17 +8,10 @@ module fuse_opt;
   See the file COPYING.LIB.
 */
 
-//C     #ifndef _FUSE_OPT_H_
-//C     #define _FUSE_OPT_H_
-
-/** @file
+/**
  *
  * This file defines the option parsing interface of FUSE
  */
-
-//C     #ifdef __cplusplus
-//C     extern "C" {
-//C     #endif
 
 /**
  * Option description
@@ -75,27 +68,21 @@ module fuse_opt;
  * If the format is "%s", memory is allocated for the string unlike
  * with scanf().
  */
-//C     struct fuse_opt {
+struct fuse_opt
+{
 	/** Matching template and optional parameter formatting */
-//C     	const char *templ;
+    char *templ;
 
 	/**
 	 * Offset of variable within 'data' parameter of fuse_opt_parse()
 	 * or -1
 	 */
-//C     	unsigned long offset;
+    uint offset;
 
 	/**
 	 * Value to set the variable to, or to be passed as 'key' to the
 	 * processing function.	 Ignored if template has a format
 	 */
-//C     	int value;
-//C     };
-
-struct fuse_opt
-{
-    char *templ;
-    uint offset;
     int value;
 }
 
@@ -114,20 +101,15 @@ struct fuse_opt
 /**
  * Argument list
  */
-//C     struct fuse_args {
-	/** Argument count */
-//C     	int argc;
-
-	/** Argument vector.  NULL terminated */
-//C     	char **argv;
-
-	/** Is 'argv' allocated? */
-//C     	int allocated;
-//C     };
 struct fuse_args
 {
+	/** Argument count */
     int argc;
+
+	/** Argument vector.  NULL terminated */
     char **argv;
+
+	/** Is 'argv' allocated? */
     int allocated;
 }
 
@@ -140,36 +122,32 @@ struct fuse_args
  * Key value passed to the processing function if an option did not
  * match any template
  */
-//C     #define FUSE_OPT_KEY_OPT     -1
-
 const FUSE_OPT_KEY_OPT = -1;
+
 /**
  * Key value passed to the processing function for all non-options
  *
  * Non-options are the arguments beginning with a charater other than
  * '-' or all arguments after the special '--' option
  */
-//C     #define FUSE_OPT_KEY_NONOPT  -2
-
 const FUSE_OPT_KEY_NONOPT = -2;
+
 /**
  * Special key value for options to keep
  *
  * Argument is not passed to processing function, but behave as if the
  * processing function returned 1
  */
-//C     #define FUSE_OPT_KEY_KEEP -3
-
 const FUSE_OPT_KEY_KEEP = -3;
+
 /**
  * Special key value for options to discard
  *
  * Argument is not passed to processing function, but behave as if the
  * processing function returned zero
  */
-//C     #define FUSE_OPT_KEY_DISCARD -4
-
 const FUSE_OPT_KEY_DISCARD = -4;
+
 /**
  * Processing function
  *
@@ -195,8 +173,6 @@ const FUSE_OPT_KEY_DISCARD = -4;
  * @param outargs the current output argument list
  * @return -1 on error, 0 if arg is to be discarded, 1 if arg should be kept
  */
-//C     typedef int (*fuse_opt_proc_t)(void *data, const char *arg, int key,
-//C     			       struct fuse_args *outargs);
 extern (C):
 alias int  function(void *data, char *arg, int key, fuse_args *outargs)fuse_opt_proc_t;
 
@@ -220,8 +196,6 @@ alias int  function(void *data, char *arg, int key, fuse_args *outargs)fuse_opt_
  * @param proc is the processing function
  * @return -1 on error, 0 on success
  */
-//C     int fuse_opt_parse(struct fuse_args *args, void *data,
-//C     		   const struct fuse_opt opts[], fuse_opt_proc_t proc);
 int  fuse_opt_parse(fuse_args *args, void *data, fuse_opt *opts, fuse_opt_proc_t proc);
 
 /**
@@ -231,7 +205,6 @@ int  fuse_opt_parse(fuse_args *args, void *data, fuse_opt *opts, fuse_opt_proc_t
  * @param opt is the option to add
  * @return -1 on allocation error, 0 on success
  */
-//C     int fuse_opt_add_opt(char **opts, const char *opt);
 int  fuse_opt_add_opt(char **opts, char *opt);
 
 /**
@@ -241,7 +214,6 @@ int  fuse_opt_add_opt(char **opts, char *opt);
  * @param opt is the option to add
  * @return -1 on allocation error, 0 on success
  */
-//C     int fuse_opt_add_opt_escaped(char **opts, const char *opt);
 int  fuse_opt_add_opt_escaped(char **opts, char *opt);
 
 /**
@@ -251,7 +223,6 @@ int  fuse_opt_add_opt_escaped(char **opts, char *opt);
  * @param arg is the new argument to add
  * @return -1 on allocation error, 0 on success
  */
-//C     int fuse_opt_add_arg(struct fuse_args *args, const char *arg);
 int  fuse_opt_add_arg(fuse_args *args, char *arg);
 
 /**
@@ -267,7 +238,6 @@ int  fuse_opt_add_arg(fuse_args *args, char *arg);
  * @param arg is the new argument to add
  * @return -1 on allocation error, 0 on success
  */
-//C     int fuse_opt_insert_arg(struct fuse_args *args, int pos, const char *arg);
 int  fuse_opt_insert_arg(fuse_args *args, int pos, char *arg);
 
 /**
@@ -277,7 +247,6 @@ int  fuse_opt_insert_arg(fuse_args *args, int pos, char *arg);
  *
  * @param args is the structure containing the argument list
  */
-//C     void fuse_opt_free_args(struct fuse_args *args);
 void  fuse_opt_free_args(fuse_args *args);
 
 
@@ -288,11 +257,4 @@ void  fuse_opt_free_args(fuse_args *args);
  * @param opt is the option to match
  * @return 1 if a match is found, 0 if not
  */
-//C     int fuse_opt_match(const struct fuse_opt opts[], const char *opt);
 int  fuse_opt_match(fuse_opt *opts, char *opt);
-
-//C     #ifdef __cplusplus
-//C     }
-//C     #endif
-
-//C     #endif /* _FUSE_OPT_H_ */

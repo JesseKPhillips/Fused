@@ -1,5 +1,22 @@
-Do not use these!
+== FUSED ==
+At least basic functionallity is working for Fuse 2.8, older versions are not supported but may work. The example hello program and a port of the TagFS project.
 
-I have not had a successful fuse project with these yet.
+https://github.com/he-the-great/TagFS
 
-Otherwise, I'll make these Boost Licensed. So if you want to try and make them work, have fun.
+
+==== IMPORTANT ====
+
+D has an issue with stat_t. At this time you can not use it. If you wish to make changes to the structure pass it to a c file that you compile seperately. You can see an example with the hello example.
+
+I'll look into adding tests, and this structure being one of them.
+
+
+=== License ===
+
+Not exactly sure if an API code needs a license, or the rules behind translating such an API. If it does need/have one, it looks like I am releasing this with LGPL license.
+
+License:
+http://www.gnu.org/licenses/lgpl-3.0.txt
+
+Fuse source code can be downloaded from:
+http://fuse.sourceforge.net/
